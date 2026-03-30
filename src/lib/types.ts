@@ -1,3 +1,5 @@
+export type ModalMode = "add" | "edit";
+
 export interface Department {
   id: number;
   name: string;
@@ -16,11 +18,15 @@ export interface Doctor {
   department_id?: number;
   department_name?: string;
   license_number: string;
-  status: 'active' | 'on_leave' | 'inactive';
+  status: DoctorStatus;
   avatar_initials?: string;
   created_at: string;
   updated_at: string;
 }
+
+export type DoctorStatus = "active" | "on_leave" | "inactive";
+
+export type Gender = "male" | "female" | "other";
 
 export interface Patient {
   id: number;
@@ -29,16 +35,18 @@ export interface Patient {
   email?: string;
   phone?: string;
   date_of_birth?: string;
-  gender?: 'male' | 'female' | 'other';
+  gender?: Gender;
   blood_type?: string;
   address?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   medical_notes?: string;
-  status: 'active' | 'discharged' | 'critical' | 'stable';
+  status: PatientStatus;
   created_at: string;
   updated_at: string;
 }
+
+export type PatientStatus = "active" | "discharged" | "critical" | "stable";
 
 export interface Appointment {
   id: number;
@@ -49,13 +57,21 @@ export interface Appointment {
   duration_min: number;
   reason?: string;
   notes?: string;
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  status: AptStatus;
   patient_name?: string;
   doctor_name?: string;
   department_name?: string;
   created_at: string;
   updated_at: string;
 }
+
+export type AptStatus =
+  | "scheduled"
+  | "confirmed"
+  | "in_progress"
+  | "completed"
+  | "cancelled"
+  | "no_show";
 
 export interface MedicalRecord {
   id: number;

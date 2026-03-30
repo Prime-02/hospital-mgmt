@@ -1,50 +1,75 @@
 import { query } from '@/lib/db';
 import { DashboardStats } from '@/lib/types';
-import { DashboardClient } from './DashboardClient';
+import { DashboardClient } from './dashboard/DashboardClient';
 
+// Combined stats query - reduces from 6 queries to 1
 async function getStats(): Promise<DashboardStats> {
-  const [patients, doctors, todayAppts, critical, completed, pending] =
-    await Promise.all([
-      query("SELECT COUNT(*) FROM patients WHERE status != 'discharged'"),
-      query("SELECT COUNT(*) FROM doctors WHERE status = 'active'"),
-      query("SELECT COUNT(*) FROM appointments WHERE scheduled_at::date = CURRENT_DATE"),
-      query("SELECT COUNT(*) FROM patients WHERE status = 'critical'"),
-      query("SELECT COUNT(*) FROM appointments WHERE status='completed' AND scheduled_at::date=CURRENT_DATE"),
-      query("SELECT COUNT(*) FROM appointments WHERE status IN ('scheduled','confirmed') AND scheduled_at >= NOW()"),
-    ]);
+  const result = await query(`
+    SELECT 
+      COALESCE((SELECT COUNT(*) FROM patients WHERE status != 'discharged'), 0) as total_patients,
+      COALESCE((SELECT COUNT(*) FROM doctors WHERE status = 'active'), 0) as total_doctors,
+      COALESCE((SELECT COUNT(*) FROM appointments WHERE scheduled_at::date = CURRENT_DATE), 0) as today_appointments,
+      COALESCE((SELECT COUNT(*) FROM patients WHERE status = 'critical'), 0) as critical_patients,
+      COALESCE((SELECT COUNT(*) FROM appointments WHERE status='completed' AND scheduled_at::date = CURRENT_DATE), 0) as completed_today,
+      COALESCE((SELECT COUNT(*) FROM appointments WHERE status IN ('scheduled','confirmed') AND scheduled_at >= NOW()), 0) as pending_appointments
+  `);
+
+  const data = result.rows[0];
   return {
-    totalPatients:       parseInt(patients.rows[0].count),
-    totalDoctors:        parseInt(doctors.rows[0].count),
-    todayAppointments:   parseInt(todayAppts.rows[0].count),
-    criticalPatients:    parseInt(critical.rows[0].count),
-    completedToday:      parseInt(completed.rows[0].count),
-    pendingAppointments: parseInt(pending.rows[0].count),
+    totalPatients: parseInt(String(data.total_patients)),
+    totalDoctors: parseInt(String(data.total_doctors)),
+    todayAppointments: parseInt(String(data.today_appointments)),
+    criticalPatients: parseInt(String(data.critical_patients)),
+    completedToday: parseInt(String(data.completed_today)),
+    pendingAppointments: parseInt(String(data.pending_appointments)),
   };
 }
 
+// Get recent appointments with optimized query
 async function getRecentAppointments() {
   const res = await query(
-    `SELECT a.id, a.scheduled_at, a.status, a.reason, a.duration_min,
-       p.first_name||' '||p.last_name AS patient_name,
-       d.first_name||' '||d.last_name AS doctor_name,
+    `SELECT 
+       a.id, 
+       a.scheduled_at, 
+       a.status, 
+       a.reason, 
+       a.duration_min,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+       CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
        dep.name AS department_name
      FROM appointments a
-     JOIN patients p ON p.id = a.patient_id
-     JOIN doctors  d ON d.id = a.doctor_id
+     INNER JOIN patients p ON p.id = a.patient_id
+     INNER JOIN doctors d ON d.id = a.doctor_id
      LEFT JOIN departments dep ON dep.id = a.department_id
-     ORDER BY a.scheduled_at DESC LIMIT 8`
+     ORDER BY a.scheduled_at DESC 
+     LIMIT 8`
   );
   return res.rows;
 }
 
+// Get critical patients with optimized query
 async function getCriticalPatients() {
   const res = await query(
-    `SELECT id, first_name, last_name, blood_type, status, medical_notes, phone
-     FROM patients WHERE status IN ('critical','stable') ORDER BY status, updated_at DESC LIMIT 6`
+    `SELECT 
+       id, 
+       first_name, 
+       last_name, 
+       blood_type, 
+       status, 
+       medical_notes, 
+       phone,
+       updated_at
+     FROM patients 
+     WHERE status IN ('critical', 'stable') 
+     ORDER BY 
+       CASE WHEN status = 'critical' THEN 1 ELSE 2 END,
+       updated_at DESC 
+     LIMIT 6`
   );
   return res.rows;
 }
 
+// Main dashboard page
 export default async function DashboardPage() {
   const [stats, appointments, criticalPatients] = await Promise.all([
     getStats(),
@@ -52,5 +77,9 @@ export default async function DashboardPage() {
     getCriticalPatients(),
   ]);
 
-  return <DashboardClient stats={stats} appointments={appointments} criticalPatients={criticalPatients} />;
+  return <DashboardClient
+    stats={stats}
+    appointments={appointments}
+    criticalPatients={criticalPatients}
+  />;
 }

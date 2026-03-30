@@ -1,33 +1,43 @@
 import { query } from '@/lib/db';
 import { DoctorsClient } from './DoctorsClient';
+import { Department, Doctor } from '@/lib/types';
+
 
 export default async function DoctorsPage({
   searchParams,
 }: {
-  searchParams: { search?: string; status?: string };
+  searchParams: Promise<{ search?: string; status?: string }>;
 }) {
-  const search = searchParams.search || '';
-  const status = searchParams.status || '';
+  const params = await searchParams;
+  const search = params.search || '';
+  const status = params.status || '';
 
   let where = 'WHERE 1=1';
-  const params: unknown[] = [];
+  const queryParams: unknown[] = [];
   let i = 1;
 
   if (search) {
     where += ` AND (d.first_name ILIKE $${i} OR d.last_name ILIKE $${i} OR d.specialization ILIKE $${i} OR d.email ILIKE $${i})`;
-    params.push(`%${search}%`); i++;
+    queryParams.push(`%${search}%`); i++;
   }
-  if (status) { where += ` AND d.status = $${i}`; params.push(status); i++; }
+  if (status) { where += ` AND d.status = $${i}`; queryParams.push(status); i++; }
 
   const [doctors, departments] = await Promise.all([
-    query(
+    query<Doctor>(
       `SELECT d.*, dep.name AS department_name
        FROM doctors d LEFT JOIN departments dep ON dep.id = d.department_id
        ${where} ORDER BY d.created_at DESC`,
-      params
+      queryParams
     ),
-    query('SELECT * FROM departments ORDER BY name'),
+    query<Department>('SELECT * FROM departments ORDER BY name'),
   ]);
 
-  return <DoctorsClient doctors={doctors.rows} departments={departments.rows} search={search} status={status} />;
+  return (
+    <DoctorsClient
+      doctors={doctors.rows as Doctor[]}
+      departments={departments.rows as Department[]}
+      search={search}
+      status={status}
+    />
+  );
 }

@@ -5,12 +5,11 @@ const globalForPg = global as unknown as { pgPool: Pool };
 export const pool =
   globalForPg.pgPool ??
   new Pool({
-    connectionString:
-      process.env.DATABASE_URL ||
-      'postgresql://postgres:password@localhost:5432/hospital_db',
+    connectionString: process.env.DATABASE_URL,
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 100000,
+    ssl: { rejectUnauthorized: false },
   });
 
 if (process.env.NODE_ENV !== 'production') {

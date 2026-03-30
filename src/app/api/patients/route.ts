@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     const countRes = await query(`SELECT COUNT(*) FROM patients ${where}`, params);
-    const total    = parseInt(countRes.rows[0].count);
+    const total    = parseInt(String(countRes.rows[0].count));
 
     const rows = await query(
       `SELECT * FROM patients ${where} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i + 1}`,

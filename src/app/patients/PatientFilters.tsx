@@ -1,0 +1,45 @@
+'use client';
+import { Search } from 'lucide-react';
+
+interface PatientFiltersProps {
+    search: string;
+    status: string;
+    onSearch: (value: string) => void;
+    onStatusChange: (value: string) => void;
+}
+
+const STATUS_OPTS = ['active', 'stable', 'critical', 'discharged'] as const;
+
+export function PatientFilters({ search, status, onSearch, onStatusChange }: PatientFiltersProps) {
+    return (
+        <div className="flex gap-3 mb-6 w-full">
+            <div className="relative flex-1">
+                <Search
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Search patients…"
+                    defaultValue={search}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter')
+                            onSearch((e.target as HTMLInputElement).value);
+                    }}
+                />
+            </div>
+            <select
+                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-40"
+                value={status}
+                onChange={(e) => onStatusChange(e.target.value)}
+            >
+                <option value="">All statuses</option>
+                {STATUS_OPTS.map((s) => (
+                    <option key={s} value={s}>
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+}

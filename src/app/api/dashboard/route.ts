@@ -20,12 +20,12 @@ export async function GET() {
       ]);
 
     return NextResponse.json({
-      totalPatients:       parseInt(patients.rows[0].count),
-      totalDoctors:        parseInt(doctors.rows[0].count),
-      todayAppointments:   parseInt(todayAppts.rows[0].count),
-      criticalPatients:    parseInt(critical.rows[0].count),
-      completedToday:      parseInt(completed.rows[0].count),
-      pendingAppointments: parseInt(pending.rows[0].count),
+      totalPatients:       parseInt(String(patients.rows[0].count)),
+      totalDoctors:        parseInt(String(doctors.rows[0].count)),
+      todayAppointments:   parseInt(String(todayAppts.rows[0].count)),
+      criticalPatients:    parseInt(String(critical.rows[0].count)),
+      completedToday:      parseInt(String(completed.rows[0].count)),
+      pendingAppointments: parseInt(String(pending.rows[0].count)),
     });
   } catch (err) {
     console.error(err);

@@ -1,6 +1,6 @@
 # MediCore HMS — Hospital Management System
 
-> A production-ready, full-stack hospital management system for managing patients, doctors, appointments, and clinical operations — built with **Next.js 15**, **PostgreSQL**, and **Tailwind CSS**.
+> A production-ready, full-stack hospital management system for managing patients, doctors, appointments, and clinical operations — built with **Next.js 16**, **PostgreSQL**, and **Tailwind CSS**.
 
 ---
 
@@ -46,7 +46,7 @@ Whether you're running a small clinic or a multi-department hospital, MediCore H
 
 | Layer      | Technology                          |
 |------------|-------------------------------------|
-| Framework  | Next.js 15 (App Router, `src/` dir) |
+| Framework  | Next.js 16 (App Router, `src/` dir) |
 | Database   | PostgreSQL via `pg` package         |
 | Styling    | Tailwind CSS + custom design        |
 | Language   | TypeScript                          |
@@ -54,7 +54,7 @@ Whether you're running a small clinic or a multi-department hospital, MediCore H
 
 ### Why these choices?
 
-- **Next.js 15 App Router** — co-locates UI components with API routes, enabling full-stack features in a single codebase with no separate backend server required.
+- **Next.js 16 App Router** — co-locates UI components with API routes, enabling full-stack features in a single codebase with no separate backend server required.
 - **PostgreSQL + `pg`** — relational integrity is critical for healthcare data; direct `pg` usage keeps the stack lightweight and avoids ORM overhead for complex join queries across patients, doctors, appointments, and departments.
 - **Tailwind CSS** — utility-first styling keeps the UI consistent and maintainable without a component library dependency.
 - **TypeScript throughout** — shared types between the API layer and UI layer catch schema mismatches at compile time, not at runtime in production.

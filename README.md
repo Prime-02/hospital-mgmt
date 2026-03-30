@@ -1,6 +1,21 @@
 # MediCore HMS — Hospital Management System
 
-A full-featured hospital management system built with **Next.js 15**, **PostgreSQL** (`pg`), and **Tailwind CSS**.
+> A production-ready, full-stack hospital management system for managing patients, doctors, appointments, and clinical operations — built with **Next.js 15**, **PostgreSQL**, and **Tailwind CSS**.
+
+---
+
+## Overview
+
+MediCore HMS is a comprehensive digital operations platform designed to replace fragmented, paper-based hospital workflows with a unified, real-time web interface. It gives clinical and administrative staff a single system to track patient status, manage doctor availability, schedule appointments, and monitor KPIs — all without switching between tools.
+
+The system is built around four core domains:
+
+- **Patients** — intake, profiling, status tracking, and medical history
+- **Doctors** — credential management, department assignment, and availability
+- **Appointments** — scheduling, lifecycle management, and inline status updates
+- **Dashboard** — live operational visibility across all domains
+
+Whether you're running a small clinic or a multi-department hospital, MediCore HMS is designed to be deployed quickly, extended easily, and used without training overhead.
 
 ---
 
@@ -37,25 +52,59 @@ A full-featured hospital management system built with **Next.js 15**, **PostgreS
 | Language   | TypeScript                          |
 | Fonts      | Playfair Display + Source Sans 3    |
 
+### Why these choices?
+
+- **Next.js 15 App Router** — co-locates UI components with API routes, enabling full-stack features in a single codebase with no separate backend server required.
+- **PostgreSQL + `pg`** — relational integrity is critical for healthcare data; direct `pg` usage keeps the stack lightweight and avoids ORM overhead for complex join queries across patients, doctors, appointments, and departments.
+- **Tailwind CSS** — utility-first styling keeps the UI consistent and maintainable without a component library dependency.
+- **TypeScript throughout** — shared types between the API layer and UI layer catch schema mismatches at compile time, not at runtime in production.
+
 ---
 
 ## Features
 
-- **Dashboard** — live stats (active patients, doctors, today's appointments, critical cases), recent appointments feed, patient watch list
-- **Patients** — full CRUD, search/filter by name/email/phone, status filter, pagination, blood type & gender tracking
-- **Doctors** — card-grid UI, full CRUD, department assignment, license number management
-- **Appointments** — schedule, edit, delete, quick inline status updates, filter by date/status/name
-- **Database** — `migrate.js` handles schema creation + seed data in one command
-- **REST API** — full JSON API for all resources, ready for external integrations
+### Dashboard
+- Live KPI cards: active patients, on-duty doctors, today's appointments, critical cases
+- Recent appointments feed with patient names, doctor assignments, and statuses
+- Patient watch list highlighting critical and high-priority cases
+- All stats fetched server-side per request — always reflects current DB state
+
+### Patients
+- Full CRUD with form validation
+- Search across name, email, and phone simultaneously
+- Filter by status: `active`, `stable`, `critical`, `discharged`
+- Pagination for large patient lists
+- Profiles include blood type, gender, DOB, address, emergency contacts, and freeform medical notes
+
+### Doctors
+- Card-grid UI optimised for scanning at a glance
+- Full CRUD with department assignment
+- License number and specialization tracking
+- Status management: `active`, `on_leave`, `inactive`
+- Avatar initials auto-generated from names
+
+### Appointments
+- Schedule appointments linking a patient, doctor, and department
+- Inline quick-status updates without opening a full edit form
+- Filter by date, status, and patient/doctor name
+- Duration tracking per appointment
+- Status lifecycle: `scheduled` → `confirmed` → `in_progress` → `completed` (or `cancelled` / `no_show`)
+
+### Database & API
+- Single `migrate.js` command creates all tables and seeds realistic sample data
+- Full REST JSON API for all resources — ready for mobile apps or external integrations
+- Stateless API routes; authentication layer can be added without restructuring
 
 ---
 
-## Project Structure
+## Architecture
+
+MediCore HMS follows a clean **feature-based folder structure** under `src/app/`, where each domain (patients, doctors, appointments, dashboard) owns its own page, client components, and hooks. Shared UI primitives live in `src/components/ui/` and business logic is centralised in `src/lib/`.
 
 ```
 src/
 ├── app/
-│   ├── api/
+│   ├── api/                        # REST API route handlers (Next.js Route Handlers)
 │   │   ├── appointments/[id]/route.ts
 │   │   ├── appointments/route.ts
 │   │   ├── dashboard/route.ts
@@ -64,14 +113,14 @@ src/
 │   │   ├── doctors/route.ts
 │   │   ├── patients/[id]/route.ts
 │   │   └── patients/route.ts
-│   ├── appointments/
+│   ├── appointments/               # Appointments feature: page + all client components
 │   │   ├── AppointmentForm.tsx
 │   │   ├── AppointmentModal.tsx
 │   │   ├── AppointmentsClient.tsx
 │   │   ├── AppointmentTable.tsx
 │   │   ├── FilterBar.tsx
 │   │   └── page.tsx
-│   ├── dashboard/
+│   ├── dashboard/                  # Dashboard feature
 │   │   ├── DashboardClient.tsx
 │   │   ├── DashboardContent.tsx
 │   │   ├── DashboardHeader.tsx
@@ -79,7 +128,7 @@ src/
 │   │   ├── RecentAppointments.tsx
 │   │   ├── StatCard.tsx
 │   │   └── StatGrid.tsx
-│   ├── doctors/
+│   ├── doctors/                    # Doctors feature
 │   │   ├── DoctorCard.tsx
 │   │   ├── DoctorFilters.tsx
 │   │   ├── DoctorForm.tsx
@@ -87,7 +136,7 @@ src/
 │   │   ├── DoctorModal.tsx
 │   │   ├── DoctorsClient.tsx
 │   │   └── page.tsx
-│   ├── patients/
+│   ├── patients/                   # Patients feature
 │   │   ├── page.tsx
 │   │   ├── PatientFilters.tsx
 │   │   ├── PatientForm.tsx
@@ -96,15 +145,15 @@ src/
 │   │   ├── PatientsClient.tsx
 │   │   ├── PatientTable.tsx
 │   │   └── PatientTableRow.tsx
-│   ├── error.tsx
+│   ├── error.tsx                   # Global error boundary
 │   ├── global-error.tsx
 │   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
+│   ├── layout.tsx                  # Root layout with sidebar
+│   └── page.tsx                    # Root redirect → /dashboard
 ├── components/
 │   ├── layout/
-│   │   └── Sidebar.tsx
-│   └── ui/
+│   │   └── Sidebar.tsx             # Persistent nav sidebar
+│   └── ui/                         # Shared atomic UI components
 │       ├── Avatar.tsx
 │       ├── DeleteConfirmDialog.tsx
 │       ├── FormError.tsx
@@ -112,7 +161,7 @@ src/
 │       ├── Modal.tsx
 │       ├── PageHeader.tsx
 │       └── StatusBadge.tsx
-├── hooks/
+├── hooks/                          # Domain-scoped data fetching & filter state hooks
 │   ├── appointments/
 │   │   ├── useAppointmentFilters.ts
 │   │   └── useAppointments.ts
@@ -125,16 +174,27 @@ src/
 │       ├── usePatients.ts
 │       └── usePatientsFilter.ts
 └── lib/
-    ├── api.ts
-    ├── db.ts
-    ├── format.ts
+    ├── api.ts                      # Typed fetch helpers for all API endpoints
+    ├── db.ts                       # PostgreSQL connection pool (singleton)
+    ├── format.ts                   # Date, name, and status formatting utilities
     ├── index.ts
-    └── types.ts
+    └── types.ts                    # Shared TypeScript types across app and API
 ```
+
+**Key design decisions:**
+
+- **Co-located API routes** — each `app/api/[resource]/route.ts` handles its own DB queries directly via the `pg` pool, keeping latency low and avoiding unnecessary abstraction layers for a system of this scope.
+- **Custom hooks per domain** — `usePatients`, `useAppointments`, etc. encapsulate all fetch logic, optimistic updates, and loading/error state, keeping page components clean.
+- **Singleton DB pool** — `lib/db.ts` exports a single `pg.Pool` instance shared across all route handlers, preventing connection exhaustion under concurrent requests.
 
 ---
 
 ## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL 14+ (local or cloud)
 
 ### 1. Install dependencies
 ```bash
@@ -149,6 +209,7 @@ CREATE DATABASE hospital_db;
 ```
 
 **Option B — Neon (free cloud PostgreSQL)**
+
 Sign up at [neon.tech](https://neon.tech), create a project, and copy your connection string.
 
 ### 3. Configure environment
@@ -185,7 +246,7 @@ This creates all tables and seeds:
 npm run dev
 ```
 
-Visit **http://localhost:3000**
+Visit **http://localhost:3000** — you'll be redirected to the dashboard automatically.
 
 ---
 
@@ -204,20 +265,22 @@ medical_records  — id, patient_id, doctor_id, appointment_id, diagnosis,
                    treatment, prescription, lab_results, follow_up_date
 ```
 
-### Patient statuses
-`active` · `stable` · `critical` · `discharged`
+### Status enumerations
 
-### Doctor statuses
-`active` · `on_leave` · `inactive`
-
-### Appointment statuses
-`scheduled` · `confirmed` · `in_progress` · `completed` · `cancelled` · `no_show`
+| Entity       | Statuses                                                                 |
+|--------------|--------------------------------------------------------------------------|
+| Patient      | `active` · `stable` · `critical` · `discharged`                         |
+| Doctor       | `active` · `on_leave` · `inactive`                                       |
+| Appointment  | `scheduled` · `confirmed` · `in_progress` · `completed` · `cancelled` · `no_show` |
 
 ---
 
-## API Routes
+## API Reference
+
+All endpoints return JSON. List endpoints support query parameters for filtering and pagination.
 
 ### Patients
+
 | Method   | Endpoint              | Description                              |
 |----------|-----------------------|------------------------------------------|
 | `GET`    | `/api/patients`       | List patients (search, filter, paginate) |
@@ -227,6 +290,7 @@ medical_records  — id, patient_id, doctor_id, appointment_id, diagnosis,
 | `DELETE` | `/api/patients/[id]`  | Delete patient                           |
 
 ### Doctors
+
 | Method   | Endpoint             | Description                        |
 |----------|----------------------|------------------------------------|
 | `GET`    | `/api/doctors`       | List doctors (search, filter)      |
@@ -236,32 +300,34 @@ medical_records  — id, patient_id, doctor_id, appointment_id, diagnosis,
 | `DELETE` | `/api/doctors/[id]`  | Delete doctor                      |
 
 ### Appointments
-| Method   | Endpoint                  | Description                                    |
-|----------|---------------------------|------------------------------------------------|
+
+| Method   | Endpoint                  | Description                                       |
+|----------|---------------------------|---------------------------------------------------|
 | `GET`    | `/api/appointments`       | List appointments (search, filter by date/status) |
-| `POST`   | `/api/appointments`       | Schedule a new appointment                     |
-| `GET`    | `/api/appointments/[id]`  | Get appointment by ID                          |
-| `PUT`    | `/api/appointments/[id]`  | Update appointment                             |
-| `DELETE` | `/api/appointments/[id]`  | Delete appointment                             |
+| `POST`   | `/api/appointments`       | Schedule a new appointment                        |
+| `GET`    | `/api/appointments/[id]`  | Get appointment by ID                             |
+| `PUT`    | `/api/appointments/[id]`  | Update appointment                                |
+| `DELETE` | `/api/appointments/[id]`  | Delete appointment                                |
 
 ### Other
+
 | Method | Endpoint           | Description               |
 |--------|--------------------|---------------------------|
 | `GET`  | `/api/departments` | List all departments      |
 | `GET`  | `/api/dashboard`   | Aggregate dashboard stats |
 
----
-
-## Query Parameters
+### Query Parameters
 
 **`GET /api/patients`**
-| Param    | Type   | Description                         |
-|----------|--------|-------------------------------------|
-| `search` | string | Filter by name, email, or phone     |
-| `status` | string | `active` · `stable` · `critical` · `discharged` |
-| `page`   | number | Page number (default: `1`)          |
+
+| Param    | Type   | Description                                             |
+|----------|--------|---------------------------------------------------------|
+| `search` | string | Filter by name, email, or phone                         |
+| `status` | string | `active` · `stable` · `critical` · `discharged`        |
+| `page`   | number | Page number (default: `1`)                              |
 
 **`GET /api/appointments`**
+
 | Param    | Type   | Description                         |
 |----------|--------|-------------------------------------|
 | `search` | string | Filter by patient or doctor name    |
@@ -270,29 +336,52 @@ medical_records  — id, patient_id, doctor_id, appointment_id, diagnosis,
 
 ---
 
-## Adding Screenshots
+## Deployment
 
-Place your screenshots in `public/hms-screenshots/` using these exact filenames so the README images resolve correctly:
+### Environment variables required in production
 
+```env
+DATABASE_URL=postgresql://...
 ```
-public/
-└── hms-screenshots/
-    ├── dashboard.png
-    ├── patients-list.png
-    ├── patients-add.png
-    ├── patients-edit.png
-    ├── patients-delete.png
-    ├── doctors-grid.png
-    ├── doctors-add.png
-    ├── doctors-edit.png
-    ├── appointments-list.png
-    ├── appointments-add.png
-    ├── appointments-edit.png
-    └── appointments-status.png
+
+### Deploying to Vercel
+
+1. Push to GitHub
+2. Import the repo in [vercel.com](https://vercel.com)
+3. Add `DATABASE_URL` as an environment variable (use a Neon connection string for a managed cloud database)
+4. Deploy — Vercel auto-detects Next.js
+
+> The `migrate.js` script should be run once after initial deployment to initialise the schema. You can run it as a one-time task locally pointing to the production `DATABASE_URL`, or add it as a build/release step.
+
+### Self-hosting
+
+Build and start the production server:
+
+```bash
+npm run build
+npm start
 ```
+
+Ensure `DATABASE_URL` is set in your environment before starting.
 
 ---
 
-## License
+## Extending the System
 
-MIT
+MediCore HMS is structured to make adding new features straightforward:
+
+- **New resource** — add an `app/api/[resource]/route.ts`, a new feature folder under `app/`, a hook under `hooks/`, and extend `lib/types.ts` with the new types.
+- **Authentication** — the API route handlers have no auth layer by default. Add middleware via Next.js `middleware.ts` or wrap route handlers with a session check (e.g. NextAuth, Clerk, or custom JWT verification).
+- **Medical records UI** — the `medical_records` table is already seeded and the schema is in place; the UI module can be added as a new feature folder following the same pattern as `patients/` or `appointments/`.
+- **Notifications** — appointment status transitions are a natural hook point for email/SMS notifications; extend the `PUT /api/appointments/[id]` handler to trigger outbound messages on status change.
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes with descriptive commits
+4. Open a pull request with a summary of what changed and why
+
+Please keep new components consistent with the existing feature-folder structure and ensure TypeScript types are updated in `lib/types.ts` for any schema changes.

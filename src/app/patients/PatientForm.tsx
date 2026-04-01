@@ -86,7 +86,7 @@ export function PatientForm({
         <div className="space-y-5">
             <FormError message={error} />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {renderField('first_name', 'First Name')}
                 {renderField('last_name', 'Last Name')}
                 {renderField('email', 'Email', 'email')}
@@ -106,7 +106,7 @@ export function PatientForm({
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {renderField('emergency_contact_name', 'Emergency Contact Name')}
                 {renderField('emergency_contact_phone', 'Emergency Contact Phone', 'tel')}
             </div>

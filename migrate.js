@@ -1,15 +1,50 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+
+function loadEnvFile(envPath) {
+  if (!fs.existsSync(envPath)) return;
+  const contents = fs.readFileSync(envPath, "utf8");
+  for (const line of contents.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const equalsIndex = trimmed.indexOf("=");
+    if (equalsIndex === -1) continue;
+    const key = trimmed.slice(0, equalsIndex).trim();
+    let value = trimmed.slice(equalsIndex + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile(path.resolve(__dirname, ".env.local"));
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error(
+    "Missing DATABASE_URL. Please set it in .env.local or as an environment variable.",
+  );
+  process.exit(1);
+}
 
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL,
+  connectionString: databaseUrl,
 });
+
+function hashPassword(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
 
 async function migrate() {
   const client = await pool.connect();
   try {
-    console.log('🏥 Running hospital database migrations...\n');
-    await client.query('BEGIN');
+    console.log("🏥 Running hospital database migrations...\n");
+    await client.query("BEGIN");
 
     // ─── Departments ────────────────────────────────────────────────────────────
     await client.query(`
@@ -21,7 +56,21 @@ async function migrate() {
         created_at  TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-    console.log('✅  departments table ready');
+    console.log("✅  departments table ready");
+
+    // ─── Users ──────────────────────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id             SERIAL PRIMARY KEY,
+        username       VARCHAR(50) NOT NULL UNIQUE,
+        email          VARCHAR(150) UNIQUE,
+        password_hash  VARCHAR(128) NOT NULL,
+        is_admin       BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at     TIMESTAMPTZ DEFAULT NOW(),
+        updated_at     TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log("✅  users table ready");
 
     // ─── Doctors ────────────────────────────────────────────────────────────────
     await client.query(`
@@ -41,7 +90,7 @@ async function migrate() {
         updated_at      TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-    console.log('✅  doctors table ready');
+    console.log("✅  doctors table ready");
 
     // ─── Patients ───────────────────────────────────────────────────────────────
     await client.query(`
@@ -64,7 +113,7 @@ async function migrate() {
         updated_at      TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-    console.log('✅  patients table ready');
+    console.log("✅  patients table ready");
 
     // ─── Appointments ───────────────────────────────────────────────────────────
     await client.query(`
@@ -83,7 +132,7 @@ async function migrate() {
         updated_at      TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-    console.log('✅  appointments table ready');
+    console.log("✅  appointments table ready");
 
     // ─── Medical Records ─────────────────────────────────────────────────────────
     await client.query(`
@@ -100,7 +149,7 @@ async function migrate() {
         created_at      TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-    console.log('✅  medical_records table ready');
+    console.log("✅  medical_records table ready");
 
     // ─── Indexes ────────────────────────────────────────────────────────────────
     await client.query(`
@@ -109,12 +158,14 @@ async function migrate() {
       CREATE INDEX IF NOT EXISTS idx_appointments_scheduled ON appointments(scheduled_at);
       CREATE INDEX IF NOT EXISTS idx_medical_records_patient ON medical_records(patient_id);
     `);
-    console.log('✅  indexes ready');
+    console.log("✅  indexes ready");
 
     // ─── Seed Data ───────────────────────────────────────────────────────────────
-    const { rows: existing } = await client.query('SELECT COUNT(*) FROM departments');
+    const { rows: existing } = await client.query(
+      "SELECT COUNT(*) FROM departments",
+    );
     if (parseInt(existing[0].count) === 0) {
-      console.log('\n🌱 Seeding initial data...');
+      console.log("\n🌱 Seeding initial data...");
 
       await client.query(`
         INSERT INTO departments (name, description, floor) VALUES
@@ -128,7 +179,7 @@ async function migrate() {
           ('General Surgery',  'Surgical procedures and operations',    2)
         ON CONFLICT DO NOTHING;
       `);
-      console.log('  ✔ departments seeded');
+      console.log("  ✔ departments seeded");
 
       await client.query(`
         INSERT INTO doctors (first_name, last_name, email, phone, specialization, department_id, license_number, status, avatar_initials) VALUES
@@ -142,7 +193,7 @@ async function migrate() {
           ('Ibrahim', 'Musa',     'i.musa@hospital.com',     '+234-801-0008', 'General Surgery',       8, 'MD-008', 'active',   'IM')
         ON CONFLICT DO NOTHING;
       `);
-      console.log('  ✔ doctors seeded');
+      console.log("  ✔ doctors seeded");
 
       await client.query(`
         INSERT INTO patients (first_name, last_name, email, phone, date_of_birth, gender, blood_type, address, status, medical_notes) VALUES
@@ -156,7 +207,7 @@ async function migrate() {
           ('Halima',  'Sule',      'halima.s@email.com',     '+234-803-1008', '1972-12-20', 'female', 'O+',  '67 Zaria Road, Kaduna',      'discharged','Post-surgery recovery')
         ON CONFLICT DO NOTHING;
       `);
-      console.log('  ✔ patients seeded');
+      console.log("  ✔ patients seeded");
 
       await client.query(`
         INSERT INTO appointments (patient_id, doctor_id, department_id, scheduled_at, duration_min, reason, status) VALUES
@@ -170,7 +221,7 @@ async function migrate() {
           (8, 8, 8, NOW() + INTERVAL '4 days',   60, 'Post-surgery assessment',           'scheduled')
         ON CONFLICT DO NOTHING;
       `);
-      console.log('  ✔ appointments seeded');
+      console.log("  ✔ appointments seeded");
 
       await client.query(`
         INSERT INTO medical_records (patient_id, doctor_id, appointment_id, diagnosis, treatment, prescription) VALUES
@@ -179,14 +230,21 @@ async function migrate() {
           (5, 2, NULL, 'Stable angina post-MI', 'Lifestyle counselling, medication review', 'Aspirin 75mg, Atorvastatin 20mg daily')
         ON CONFLICT DO NOTHING;
       `);
-      console.log('  ✔ medical records seeded');
+      console.log("  ✔ medical records seeded");
+
+      await client.query(`
+        INSERT INTO users (username, email, password_hash, is_admin) VALUES
+          ('admin', 'admin@hospital.com', '${hashPassword("admin123")}', true)
+        ON CONFLICT DO NOTHING;
+      `);
+      console.log("  ✔ default admin user seeded");
     }
 
-    await client.query('COMMIT');
-    console.log('\n🎉 All migrations completed successfully!\n');
+    await client.query("COMMIT");
+    console.log("\n🎉 All migrations completed successfully!\n");
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('❌ Migration failed:', err.message);
+    await client.query("ROLLBACK");
+    console.error("❌ Migration failed:", err.message);
     process.exit(1);
   } finally {
     client.release();

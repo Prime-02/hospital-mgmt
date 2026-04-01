@@ -102,7 +102,7 @@ export function AppointmentForm({
             </div>
 
             {/* Date/Time + Duration */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                     <label className="field-label">Date &amp; Time</label>
                     <input

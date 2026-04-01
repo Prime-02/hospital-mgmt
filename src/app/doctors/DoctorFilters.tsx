@@ -12,7 +12,7 @@ const STATUS_OPTS = ['active', 'on_leave', 'inactive'];
 
 export function DoctorFilters({ search, status, onSearch, onStatusChange }: DoctorFiltersProps) {
     return (
-        <div className="flex gap-3 mb-6 items-center">
+        <div className="flex flex-col gap-3 mb-6 w-full sm:flex-row sm:items-center">
             <div className="relative flex-1">
                 <Search
                     size={18}

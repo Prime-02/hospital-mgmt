@@ -68,7 +68,7 @@ export function StatGrid({ stats }: StatGridProps) {
     ];
 
     return (
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2 xl:grid-cols-3">
             {cards.map((card) => (
                 <StatCard key={card.label} {...card} />
             ))}

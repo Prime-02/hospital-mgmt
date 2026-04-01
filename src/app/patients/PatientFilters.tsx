@@ -12,7 +12,7 @@ const STATUS_OPTS = ['active', 'stable', 'critical', 'discharged'] as const;
 
 export function PatientFilters({ search, status, onSearch, onStatusChange }: PatientFiltersProps) {
     return (
-        <div className="flex gap-3 mb-6 w-full">
+        <div className="flex flex-col gap-3 mb-6 w-full sm:flex-row sm:items-center">
             <div className="relative flex-1">
                 <Search
                     size={15}
@@ -29,7 +29,7 @@ export function PatientFilters({ search, status, onSearch, onStatusChange }: Pat
                 />
             </div>
             <select
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-40"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white sm:w-40"
                 value={status}
                 onChange={(e) => onStatusChange(e.target.value)}
             >

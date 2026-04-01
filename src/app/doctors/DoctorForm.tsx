@@ -35,7 +35,7 @@ export function DoctorForm({
     <div className="space-y-4">
       <FormError message={error} />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {(['first_name', 'last_name'] as const).map((k) => (
           <div key={k}>
             <label className="field-label">

@@ -10,7 +10,7 @@ interface DashboardContentProps {
 
 export function DashboardContent({ appointments, criticalPatients }: DashboardContentProps) {
     return (
-        <div className="grid grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
             <RecentAppointments appointments={appointments} />
             <PatientWatch patients={criticalPatients} />
         </div>

@@ -48,7 +48,7 @@ export function FilterBar({
             </div>
 
             <select
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-44"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white sm:w-44"
                 value={statusFilter}
                 onChange={(e) => onStatusChange(e.target.value)}
             >
@@ -62,7 +62,7 @@ export function FilterBar({
 
             <input
                 type="date"
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-44"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:w-44"
                 value={dateFilter}
                 onChange={(e) => onDateChange(e.target.value)}
             />

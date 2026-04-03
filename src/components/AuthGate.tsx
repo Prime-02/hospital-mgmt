@@ -20,6 +20,7 @@ export function AuthGate({ children }: AuthGateProps) {
     const [authKey, setAuthKey] = useState('');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const stored = window.localStorage.getItem(AUTH_KEY);
@@ -36,9 +37,11 @@ export function AuthGate({ children }: AuthGateProps) {
         event.preventDefault();
         setError('');
         setMessage('');
+        setIsLoading(true);
 
         if (!username.trim() || !password.trim()) {
             setError('Username and password are required.');
+            setIsLoading(false);
             return;
         }
 
@@ -51,6 +54,7 @@ export function AuthGate({ children }: AuthGateProps) {
         if (mode === 'signup') {
             if (!authKey.trim()) {
                 setError('Auth key is required during signup.');
+                setIsLoading(false);
                 return;
             }
             payload.email = email.trim();
@@ -67,6 +71,7 @@ export function AuthGate({ children }: AuthGateProps) {
             const data = await response.json();
             if (!response.ok) {
                 setError(data.error || 'Authentication failed.');
+                setIsLoading(false);
                 return;
             }
 
@@ -75,8 +80,10 @@ export function AuthGate({ children }: AuthGateProps) {
             } else {
                 setError('Unable to authenticate user.');
             }
+            setIsLoading(false);
         } catch (err) {
             setError('Unable to contact authentication server.');
+            setIsLoading(false);
         }
     };
 
@@ -114,20 +121,22 @@ export function AuthGate({ children }: AuthGateProps) {
                         <button
                             type="button"
                             onClick={() => switchMode('login')}
+                            disabled={isLoading}
                             className={`flex-1 rounded-2xl px-4 py-2 text-sm font-semibold ${mode === 'login'
                                 ? 'bg-slate-100 text-slate-950'
                                 : 'text-slate-400 hover:text-white'
-                                }`}
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             Login
                         </button>
                         <button
                             type="button"
                             onClick={() => switchMode('signup')}
+                            disabled={isLoading}
                             className={`flex-1 rounded-2xl px-4 py-2 text-sm font-semibold ${mode === 'signup'
                                 ? 'bg-slate-100 text-slate-950'
                                 : 'text-slate-400 hover:text-white'
-                                }`}
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             Sign up
                         </button>
@@ -142,6 +151,7 @@ export function AuthGate({ children }: AuthGateProps) {
                                 id="username"
                                 value={username}
                                 onChange={(event) => setUsername(event.target.value)}
+                                disabled={isLoading}
                                 className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20"
                                 placeholder="admin"
                             />
@@ -156,6 +166,7 @@ export function AuthGate({ children }: AuthGateProps) {
                                     id="email"
                                     value={email}
                                     onChange={(event) => setEmail(event.target.value)}
+                                    disabled={isLoading}
                                     className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20"
                                     placeholder="admin@hospital.com"
                                 />
@@ -171,6 +182,7 @@ export function AuthGate({ children }: AuthGateProps) {
                                 type="password"
                                 value={password}
                                 onChange={(event) => setPassword(event.target.value)}
+                                disabled={isLoading}
                                 className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20"
                                 placeholder="Enter password"
                             />
@@ -185,6 +197,7 @@ export function AuthGate({ children }: AuthGateProps) {
                                     id="authkey"
                                     value={authKey}
                                     onChange={(event) => setAuthKey(event.target.value)}
+                                    disabled={isLoading}
                                     className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20"
                                     placeholder="Enter admin auth key"
                                 />
@@ -204,9 +217,12 @@ export function AuthGate({ children }: AuthGateProps) {
 
                         <button
                             type="submit"
-                            className="w-full rounded-2xl bg-teal-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-400"
+                            disabled={isLoading}
+                            className="w-full rounded-2xl bg-teal-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {mode === 'signup' ? 'Create account' : 'Sign in'}
+                            {isLoading
+                                ? (mode === 'signup' ? 'Creating account...' : 'Signing in...')
+                                : (mode === 'signup' ? 'Create account' : 'Sign in')}
                         </button>
                     </form>
 

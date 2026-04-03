@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { createHash } from "crypto";
 
-const ADMIN_AUTH_KEY = process.env.ADMIN_AUTH_KEY || "hospital-admin-key";
+const ADMIN_AUTH_KEY = process.env.ADMIN_AUTH_KEY;
 
 function hashPassword(value: string) {
   return createHash("sha256").update(value).digest("hex");
